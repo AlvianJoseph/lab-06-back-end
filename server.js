@@ -61,7 +61,7 @@ function searchForecast (query) {
 function Forecast(query, weatherData) {
     this.search_query = query;
     this.Forecast = weatherData.hourly.summary;
-    this.Time = weatherData.hourly.data[0].time
+    this.Time = new Date(weatherData.hourly.data[0].time);
 }
 
 app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
