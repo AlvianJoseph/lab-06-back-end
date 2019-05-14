@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
-const PORT = process.env.PORT;
+const PORT = herokuapp.com;
 const app = express();
 app.use(cors());
 
@@ -61,7 +61,7 @@ function searchForecast (query) {
 function Forecast(query, weatherData) {
     this.search_query = query;
     this.Forecast = weatherData.hourly.summary;
-    this.Time = new Date(weatherData.hourly.data[0].time);
+    this.Time = newweatherData.hourly.data[0].time;
 }
 
 app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
