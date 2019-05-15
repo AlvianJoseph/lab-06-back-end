@@ -1,25 +1,33 @@
+'use strict';
+
 require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const superagent = require('superagent');
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 const app = express();
 app.use(cors());
 
+app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
 
-app.get('/location', (request, response) => {
-    try {
-        const locationData = searchToLatLong(request.query.data);
-        response.send(locationData);
-    }
-    catch (error) {
-        console.log(error);
-        response.status(500).send('Status: 500. Sorry, something went wrong');
-    }
-});
+app.get('/location', searchToLatLong);
 
-function searchToLatLong(query) {
+function searchToLatLong(request, response) {
+    // construct a url
+    // make an hhtp call to that url
+    const query = request.query.data;
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${process.env.GEOCODE_API_KEY}`;
+
+    return superagent.get(url).then(result => {
+        response.send(new Location(query, result.body))
+    }).catch(error => {
+        response.status(500).send("something went wrong")
+    })
+}
+
+function searchToLatLongMock(query) {
     const geoData = require('./data/geo.json');
     const location = new Location(query, geoData)
     return location;
@@ -32,38 +40,28 @@ function Location(query, geoData) {
     this.longitude = geoData.results[0].geometry.location.lng;
 }
 
-// const forecastArr = [];
-// // app.get('data/darksky.json')
-// //         .then(weatherObjects => {
-// //             weatherObjects.forEach(forecast => forecastArr.push(new Location(query, geoData)));
-// //     })
 
-app.get('/weather', (request, response) => {
+const dailyWeather = [];
+
+app.get('/weather', getWeather);
+
+function getWeather(request, response) {
+    const weatherData = require('./data/darksky.json');
     try {
-        const weatherData = searchForecast(request.query.data);
-        response.send(weatherData);
-
+        weatherData.daily.data.forEach(day => {
+            dailyWeather.push(new Weather(day));
+        })
+        response.send(dailyWeather);
     }
     catch (error) {
         console.log(error);
         response.status(500).send('Status: 500. Sorry, something went wrong');
     }
-});
-
-function searchForecast (query) {
-    const weatherData = require('./data/darksky.json');
-    // weatherData.forEach( () => forecastArr.push(new Location(query, weatherData)))
-    // request.send(forecastArr)
-    const forecast = new Forecast(query, weatherData)
-    return forecast;
 }
 
-// var ts = new Date();
-// console.log(ts.toDateString());
-function Forecast(query, weatherData) {
-    this.search_query = query;
-    this.Forecast = weatherData.hourly.summary;
-    this.Time = new Date(weatherData.hourly.data[0].time).toDateString();
+
+function Weather(day) {
+    this.forecast = day.summary;
+    this.time = new Date(day.time).toString();
 }
 
-app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
