@@ -62,6 +62,6 @@ function getWeather(request, response) {
 
 function Weather(day) {
     this.forecast = day.summary;
-    this.time = new Date(day.time).toString();
+    this.time = new Date(day.time*1000).toDateString();
 }
 
